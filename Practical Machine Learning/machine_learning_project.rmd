@@ -1,0 +1,106 @@
+---
+title: "Machine Learning Project"
+author: "Plato Karageorgis"
+date: "29/11/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(caret)
+```
+
+### A Quick Intro
+
+As the report states "One thing that people regularly do is quantify how  much of a particular activity they do, but they rarely quantify how well they do it" and that is what we are about to examine. We are going to create a model to predict the variable "classe" of our data. This variable pinpoints the way these people did their exercise, something that we can see thanks to the accelerometers that they wore.train_in <- read.csv('./pml-training.csv', header=T)
+
+To begin the analysis, we will assign our data to local variables.
+
+```{r}
+train_data <- read.csv('C:/Users/Platon/Desktop/Coursera/pml-training.csv', header=T)
+test_data <- read.csv('C:/Users/Platon/Desktop/Coursera/pml-testing.csv', header=T)
+```
+
+Since the test data will be used later in order to test, as the name states, our prediction model, we will start with the train data. Following the course's instructions, we will use cross validation and separate the training data in partitions. The 75% will be used for training and the rest 25% will be responsible for the validation.
+
+```{r,}
+set.seed(33000)
+inTrain <- createDataPartition(y= train_data$classe, p=0.7, list=FALSE)
+training <- train_data[inTrain, ]
+testing <- train_data[-inTrain, ]
+```
+
+
+Now, we have to start "playing" with our data. The main problem here is that we have a lot of NA values. This affects us mostly on our test set and not so much on our training set, although if we want to be precise, we should do it on both. There are multiples ways to go. We could erase all of them but then we might have a problem with the quantity of the remaining data. Also, we could erase some of them randomly and uniformly. I will choose the simpler solution and erase all of them since we have a lot of data.
+
+```{r}
+nas <- sapply(names(test_data), function(x) all(is.na(test_data[,x])==TRUE))
+nas_names <- names(nas)[nas==FALSE]
+nas_names <- nas_names[-(1:7)]
+nas_names <- nas_names[1:(length(nas_names)-1)]
+fit <- trainControl(method='cv', number = 3)
+```
+
+### Algorithms
+
+I will apply 2 algorithms to check if my model is working correctly. I will use Random Forest and Boosting Trees.
+Firstly, for the random forest algorithm:
+
+```{r}
+modelFitRF <- train(classe ~ ., data=training[, c('classe', nas_names)], trControl = fit, method='rf',ntree=70)
+```
+
+And for the prediction:
+```{r}
+predictFitRF <- predict(modelFitRF, testing, type = "raw")
+```
+
+And moving on the GBM algorithm:
+
+```{r}
+modelFitGBM <- train(classe ~ ., data=training[, c('classe', nas_names)], trControl = fit, method='gbm')
+```
+
+And for the prediction:
+```{r,results = FALSE}
+predictFitGBM <- predict(modelFitGBM, testing, type = "raw")
+```
+
+### Plots
+
+Moving on, I will do some very simple plots with the plot() function in order to visualize the accuracies. 
+```{r}
+plot(modelFitGBM, ylim = c(0.9, 1), main= "GBM")
+
+plot(modelFitRF, ylim = c(0.9, 1),main= "Random Forest")
+
+
+```
+
+### Results
+
+Moreover, I am creating a confusion matrix exactly like the ones shown in the lectures in order to see the exact values of the accuracies.
+```{r}
+
+confusionGBM <- confusionMatrix(predictFitGBM, as.factor(testing$classe))
+confusionRF <- confusionMatrix(predictFitRF, as.factor(testing$classe))
+
+accuracy <- data.frame(Model = c('RF', 'GBM'),Accuracy = rbind(confusionRF$overall[1], confusionGBM$overall[1]))
+print(accuracy)
+
+```
+
+### Final Predictions
+
+Last but not least, the 20 predictions that the exercise requests. I will use Random Forest since it was better.
+
+```{r}
+predictions <- predict(modelFitRF, newdata=test_data)
+final <- data.frame(problem_id= test_data$problem_id, predicted=predictions)
+print(final)
+```
+
+### Conclusion
+We can clearly see that the random forest algorithm is more than capable of predicting the right values from the plots but even more clearly on our matrix. The GBM model takes is also running quite impressively. You can see the results on the .html file.

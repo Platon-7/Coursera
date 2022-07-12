@@ -1,0 +1,43 @@
+---
+title: "Week 3 Assignment"
+author: "Plato Karageorgis"
+date: '2022-06-21'
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo = FALSE}
+
+library(worldfootballR)
+library(ggplot2)
+library(dplyr)
+library(plotly)
+
+match_urls <- get_match_urls(country = "ENG", gender = "M", season_end_year = c(2021:2022), time_pause = 5)
+
+match_summaries <- get_match_summary(match_url = match_urls)
+
+subset<- select(filter(match_summaries, Matchweek == "Premier League (Matchweek 1)" & Season == "2021-2022"), c(Away_xG, Away_Score, Away_Team))
+
+subset <- subset %>% distinct()
+
+plot2021_2022 <- plot_ly(subset, x = subset$Away_xG, y = subset$Away_Score, color = subset$Away_Team, mode = "markers") 
+
+subset2<- select(filter(match_summaries, Matchweek == "Premier League (Matchweek 1)" & Season == "2020-2021"), c(Away_xG, Away_Score, Away_Team))
+
+subset2 <- subset2 %>% distinct()
+
+plot2020_2021 <- plot_ly(subset2, x = subset2$Away_xG, y = subset2$Away_Score, color = subset2$Away_Team, mode = "markers") 
+
+"The Away Goals compared with Expected Away goals for the last season"
+plot2021_2022
+"The Away Goals compared with Expected Away goals for the 2020-2021 season"
+plot2020_2021
+```
+

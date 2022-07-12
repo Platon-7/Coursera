@@ -1,0 +1,45 @@
+---
+title: "Data Capstone Project Presentation"
+author: "Plato Karageorgis"
+date: '12-07-2022'
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This is a presentation for the shiny app on this link -->  https://platon.shinyapps.io/Data_Capstone/
+
+
+## Summary of the App
+
+This app is a poor relative of the old game Akinator. Its task is to fill out phrases and hopefully predict the final word. In order for the app to be loaded fully, the training data sample has to be very small so unfortunately the capabilities of the app that you are going to test are limited.
+
+## Guides and how-to's
+
+It is relatively simple to use this app, as the only things you have to do are:
+
+    - Think of a phrase and type it on the appropriate field but skip typing the last word
+    - Click "Alacazam" which is the magic word
+
+If everything works as expected you will see either Akinator's prediction or a notification outlining that Akinator is unable to predict the next word.
+  
+## The model's back-end in a nutshell
+
+All this model does is studying a dataset and cleaning it. Cleaning a dataset means that basically we discard all the traits of the dataset that we don't need and we retain the important ones. For example every word is crucial when it comes to predicting the next word but we don't really need the punctuation marks. 
+
+When the dataset is cleaned, then the app is creating some dataframes that extract counts and other characteristics of the dataset. Finally these dataframes provide us with the prediction.
+
+## Performance
+
+The performance of the algorithm is strongly related with the training set. The training set in our case is very small so there is really no point to mention any performance results but I encourage you to load the data from the link below and see the application's full potential by using for example 5-10% of the full dataset as a training set.
+
+**It should be noted** that the training dataset is not the mere factor of the performance and it should not be too big as it will lead to overfitting, but in our case 2% is too small.
+
+https://github.com/Platon-7/Platon-7.github.io/tree/ghpages
+
+```
+

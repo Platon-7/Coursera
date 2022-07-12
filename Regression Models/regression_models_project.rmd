@@ -1,0 +1,91 @@
+---
+title: "Regression Models Project"
+author: "Plato Karageorgis"
+date: "6/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### A Quick Intro
+
+According to the exercise, we work for Motor Trend, a magazine about the automobile industry. So we are about to run some tests and analyze the given mtcars dataset and hopefully when we are done we will be able to jump into concrete conclusions. The topic of the analysis is the comparison of automatic versus manual transmission and finding out which works best for the MPG and measuring the exact impact on those two on MPG. Without further ado, lets get to it.
+
+To begin with, lets take a look at our data before we start the analysis.
+
+```{r, echo = FALSE}
+head(mtcars)
+```
+
+Now, the first part is simple if you have completed the Statistical Inference class. We will run a two-sided t.test where the null hypothesis is H0: x=0 where x says that am not is influential on mpg and HA: x!=0 stating that am is affecting the mpg.
+
+```{r, echo=FALSE}
+t.test(mpg~am,mtcars)
+```
+
+The p-value is p=0.001374 so if we set a=0.01 we are 99% confident that we can reject the null hypothesis. This means that am is not affecting the mpg.
+
+As for the quantity difference and whether manual or automatic is better we can calculate a confidence interval that will illustrate the margin we are looking for. But we will jump to that as soon as we have concluded to our final model.
+
+### Models
+
+Moreover, we will attempt to fit some models in order to get a clearer view.
+
+#### *First Model*
+
+The first model will contain every value in order for us to see the general view of our data.
+
+```{r, echo=FALSE}
+first_model<- lm(mpg~., mtcars)
+summary(first_model)$coefficients
+```
+
+We can see that values like cyl, disp, hp and carb are really the opposite of influential on mpg so we choose to remove them and fit the data again.
+
+#### *Second Model*
+
+```{r, echo=FALSE}
+mtcars_2 <- mtcars[, c("mpg", "drat", "wt", "qsec", "vs", "am", "gear")]
+second_model<- lm(mpg~ ., mtcars_2)
+summary(second_model)$coefficients
+```
+
+Similarly, we will remove drat, vs and gear.
+
+#### *Third Model*
+
+```{r, echo=FALSE}
+mtcars_3 <- mtcars_2[, c("mpg","wt", "qsec", "am")]
+third_model<- lm(mpg~ ., mtcars_3)
+summary(third_model)$coefficients
+summary(third_model)$adj.r.squared
+```
+
+If we remove the least influential value which is qsec here, the am value becomes biased and therefore this is the most precise model we can have with this technique. We can also see that the adjusted R-squared value is 83% which means that the total variance is explained well by this model.
+
+Now that we have our final model, lets do the manual-automatic comparison and the quantity difference of the MPG between manual and automatic transmissions.
+
+```{r, echo=FALSE}
+sumCoef<- summary(third_model)$coefficients
+confint<- sumCoef[4,1] + c(-1,1)* qt(0.975, df= third_model$df) * sumCoef[4,2]
+confint
+```
+Our confidence interval states that we are 95% confident that a shift from automatic = "0" to manual = "1" will increase the mpg by at least 0.04573031  and at most 5.82594408. So, the manual transmissions seem to be better than the automatic ones.
+
+### Exploratory Data analysis
+
+Even though we have pretty much already analyzed along with the models our data, lets add some plots to visualize it. We'll focus on the residuals.
+
+```{r, echo=FALSE}
+plot(third_model, which = 1)
+plot(third_model, which = 2)
+plot(third_model, which = 3)
+```
+
+On the first plot there is a clear relation with the fitted regression line but from my point of view it could be more precise. But it is definitely showing what we expected. The second plot is depicting the obvious linearity of the data with the QQ-Plot and the third plot similarly with the first one could be a more precise but is still on point.
+
+### Summary
+
+After our analysis we have concluded that there is relation between am and mpg even though its not the strongest one. The comparison between automatic and manual transmissions had manual as a winner and the quantity difference is shown by the confidence interval we calculated before.

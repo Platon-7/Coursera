@@ -1,0 +1,45 @@
+---
+title: "Shiny App Presentation"
+author: "Plato Karageorgis"
+date: '2022-06-23'
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This is a presentation for the shiny app on this link -->  https://platon.shinyapps.io/Shiny/
+
+
+## Prerequisites
+
+To run this app you need to:
+
+  - Install shiny package with install.packages("Shiny") and load the library with library(shiny)
+  - Install C50 package with install.packages("C50") and load the library with library(C50)
+
+## Documentation
+
+The documentation of the app can be found on the link below
+
+  - https://github.com/Platon-7/Platon-7.github.io/blob/ghpages/Developing%20Data%20Products/Week%204/Shiny%20App/Documentation.rmd
+  
+## A quick look to the data
+
+```{r, echo = TRUE}
+  summary(iris)
+```
+## A plot of our decision tree
+
+```{r, echo = FALSE}
+  options(warn=-1)
+  library(C50)
+  inner <- iris[,1:4]
+  outsider <- iris[,5]
+  model <- C5.0(inner, outsider, control = C5.0Control(noGlobalPruning = FALSE))
+  plot(model, main="C5.0 Decision Tree - Pruned")
+```
+

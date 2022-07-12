@@ -1,0 +1,268 @@
+---
+title: "Milestone Project"
+author: "Plato Karageorgis"
+date: '09-07-2022'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tm)
+library(stringr)
+library(wordcloud)
+library(quanteda)
+library(tidytext)
+library(dplyr)
+library(tidyr)
+library(data.table)
+```
+
+## Purpose of this Presentation
+
+This is the milestone project for the Data Capstone course of the Data Science specialization by the Johns Hopkins university. We are given 3 datasets (blogs, news, twitter) and we must use them to create a model that will predict expected words typed by the user, by using natural language processing. This project will demonstrate the progress made so far but will not contain the actual model.
+
+## Loading the Data
+
+To begin with, we must load the data.
+
+```{r, echo = TRUE}
+options(warn=-1)
+
+blogs <- readLines("C:/Users/Platon/Desktop/Coursera/Capstone Project/final/en_US/en_US.blogs.txt")
+
+news<- readLines("C:/Users/Platon/Desktop/Coursera/Capstone Project/final/en_US/en_US.news.txt")
+
+twitter<- readLines("C:/Users/Platon/Desktop/Coursera/Capstone Project/final/en_US/en_US.twitter.txt", skipNul = TRUE)
+```
+
+## Data Summary
+
+The *blogs* dataset has the following length:
+
+```{r, echo = FALSE}
+length(blogs)
+```
+
+And the following amount of characters:
+
+```{r, echo = FALSE}
+sum(nchar(blogs))
+```
+
+The *news* dataset has the following length:
+
+```{r, echo = FALSE}
+length(news)
+```
+
+And the following amount of characters:
+```{r, echo = FALSE}
+sum(nchar(news))
+```
+
+The *twitter* dataset has the following length:
+
+```{r, echo = FALSE}
+length(twitter)
+```
+
+And the following amount of characters:
+
+```{r, echo = FALSE}
+sum(nchar(twitter))
+```
+
+## Sampling the Data
+
+Subsequently, due to the very large amount of data we will keep the 2% and work with that in order to avoid long processing times.
+
+```{r, echo = TRUE}
+set.seed(777777)
+sampleBlogs <- sample(blogs, length(blogs) * 0.02, replace = FALSE)
+
+sampleNews <- sample(news, length(news) * 0.02, replace = FALSE)
+
+sampleTwitter <- sample(twitter, length(twitter) * 0.02, replace = FALSE)
+```
+
+## Experiments
+
+
+Now that we have a small but adequate subset of the data that will allow us to save processing time we will try to experiment with it. Punctuation is very significant for the written speech and the use of it demonstrates a good use of the language. We will find the total punctuation marks of each dataset and we will divide it with the total number of characters in order to make a fair comparison.
+
+```{r, echo = TRUE}
+
+pattern <- '[:punct:]'
+
+blog_punct <- sum(str_count(sampleBlogs,pattern))/sum(nchar(sampleBlogs))
+
+news_punct <- sum(str_count(sampleNews,pattern))/sum(nchar(sampleNews))
+
+twitter_punct <- sum(str_count(sampleTwitter,pattern))/sum(nchar(sampleTwitter))
+```
+
+We can see, that blogs have the less usage of punctuation followed by news and surprisingly twitter has the biggest percentage of punctuation marks. We will take the first 500 tweets and search if there is a pattern or a connection between them and their punctuation marks.
+
+```{r, echo = FALSE}
+plot(str_count(head(sampleTwitter, 500), pattern), xlab = "Tweets", ylab = "Punctuation Count", type = "l", col = "blue")
+qqnorm(str_count(head(sampleTwitter, 500), pattern))
+qqline(str_count(head(sampleTwitter, 500), pattern), col = "steelblue", lwd = 2)
+```
+
+It is obvious that the tweets are random and have no connection.
+
+
+## Data Cleaning
+
+In order to make a good model we need to get rid of everything that we don't need and that will maybe affect the final result. We can easily notice by looking at the data that there are some characters that do not belong in the English alphabet so we will *remove all the foreign characters*. Also, we are predicting words so we should *remove all the punctuation marks examined before*. Finally, the project says that we should *remove profanity words* and we will attempt to do that by using an exterior dataset used by Facebook.
+
+**The following part will contain some more advanced code that is a sneak preview for the final project**
+
+First we delete the foreign characters:
+
+```{r, echo = TRUE}
+sampleBlogs <- iconv(sampleBlogs, "latin1", "ASCII", sub = "")
+sampleNews <- iconv(sampleNews, "latin1", "ASCII", sub = "")
+sampleTwitter <- iconv(sampleTwitter, "latin1", "ASCII", sub = "")
+```
+
+
+We continue by deleting the profanity words:
+
+```{r, echo = TRUE}
+profanity <- read.table("C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/facebook_profanity.txt", sep=",")
+
+sampleBlogs <- VCorpus(VectorSource(sampleBlogs))
+sampleBlogs <- tm_map(sampleBlogs, removeWords, profanity)
+
+sampleNews <- VCorpus(VectorSource(sampleNews))
+sampleNews <- tm_map(sampleNews, removeWords, profanity)
+
+sampleTwitter <- VCorpus(VectorSource(sampleTwitter))
+sampleTwitter <- tm_map(sampleTwitter, removeWords, profanity)
+
+```
+(Note: We take only the first 1000 values from the data because the profanity filter can take quite long)
+
+
+Lastly, we delete the punctuation marks from the datasets:
+```{r, echo = TRUE}
+sampleBlogs <- tm_map(sampleBlogs, removePunctuation)
+sampleNews <- tm_map(sampleNews, removePunctuation)
+sampleTwitter <- tm_map(sampleTwitter, removePunctuation)
+```
+
+
+## Extra Data Manipulation
+
+According to the file provided by the teachers in Week 1, we must remove stopwords (words like and, so etc), numbers and before finishing we must convert the text to plain. All these are possible with the use of tm_map.
+
+```{r, echo = TRUE}
+#sampleBlogs <- tm_map(sampleBlogs, removeWords, stopwords("english"))
+#sampleNews <- tm_map(sampleNews, removeWords, stopwords("english"))
+#sampleTwitter <- tm_map(sampleTwitter, removeWords, stopwords("english"))
+
+
+sampleBlogs <- tm_map(sampleBlogs, removeNumbers)
+sampleNews <- tm_map(sampleNews, removeNumbers)
+sampleTwitter <- tm_map(sampleTwitter, removeNumbers)
+
+sampleBlogs <- tm_map(sampleBlogs, stripWhitespace)
+sampleNews <- tm_map(sampleNews, stripWhitespace)
+sampleTwitter <- tm_map(sampleTwitter, stripWhitespace)
+
+sampleBlogs <- tm_map(sampleBlogs, PlainTextDocument)
+sampleNews <- tm_map(sampleNews, PlainTextDocument)
+sampleTwitter <- tm_map(sampleTwitter, PlainTextDocument)
+```
+
+## Merge all the data in one file
+```{r, echo = TRUE}
+sampleData <- c(sampleBlogs, sampleNews, sampleTwitter)
+saveRDS(sampleData, file = "C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/sampleData.rds")
+sampleDataText <- data.frame(text = unlist(sapply(sampleData, '[', "content")), stringsAsFactors = FALSE)
+con <- file("C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/sampleData.rds", open = "w")
+writeLines(sampleDataText$text, con)
+close(con)
+
+```
+
+## Create Bigrams, Trigrams and Quadgrams
+
+```{r, echo = FALSE}
+
+bigramData <- sampleDataText %>%
+      unnest_tokens(bigram, text, token = "ngrams", n = 2)
+
+bigram_tiny <- bigramData %>%
+      count(bigram) %>%
+      filter(n > 10) %>%
+      arrange(desc(n))
+rm(list = c("bigramData"))
+
+bi_words <- bigram_tiny %>%
+      separate(bigram, c("word1", "word2"), sep = " ")
+
+
+trigramData <- sampleDataText %>%
+      unnest_tokens(trigram, text, token = "ngrams", n = 3)
+
+trigram_tiny <- trigramData %>%
+      count(trigram) %>%
+      filter(n > 3) %>%
+      arrange(desc(n))
+rm(list = c("trigramData"))
+
+tri_words <- trigram_tiny %>%
+      separate(trigram, c("word1", "word2", "word3"), sep = " ")
+
+
+quadgramData <- sampleDataText %>%
+      unnest_tokens(quadgram, text, token = "ngrams", n = 4)
+
+quadgram_tiny <- quadgramData %>%
+      count(quadgram) %>%
+      filter(n > 1) %>%
+      arrange(desc(n))
+rm(list = c("quadgramData"))
+
+
+quad_words <- quadgram_tiny %>%
+      separate(quadgram, c("word1", "word2", "word3", "word4"), sep = " ")
+
+pentagramData <- sampleDataText %>%
+      unnest_tokens(pentagram, text, token = "ngrams", n = 5)
+
+pentagram_tiny <- pentagramData %>%
+      count(pentagram) %>%
+      filter(n > 1) %>%
+      arrange(desc(n))
+rm(list = c("pentagramData"))
+
+
+penta_words <- pentagram_tiny %>%
+      separate(pentagram, c("word1", "word2", "word3", "word4", "word5"), sep = " ")
+
+hexagramData <- sampleDataText %>%
+      unnest_tokens(hexagram, text, token = "ngrams", n = 6)
+
+hexagram_tiny <- hexagramData %>%
+      count(hexagram) %>%
+      filter(n > 1) %>%
+      arrange(desc(n))
+rm(list = c("hexagramData"))
+
+
+hexa_words <- hexagram_tiny %>%
+      separate(hexagram, c("word1", "word2", "word3", "word4", "word5", "word6"), sep = " ")
+
+
+dir.create("data", showWarnings = FALSE)
+
+saveRDS(bi_words, "C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/bi_words.rds")
+saveRDS(tri_words, "C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/tri_words.rds")
+saveRDS(quad_words,"C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/quad_words.rds")
+saveRDS(penta_words,"C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/penta_words.rds")
+saveRDS(hexa_words,"C:/Users/Platon/Desktop/Coursera/Capstone Project/Data_Capstone/hexa_words.rds")
+
+```

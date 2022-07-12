@@ -1,0 +1,36 @@
+---
+title: "Week 2 Assignment"
+author: "Platon"
+date: '2022-06-13'
+output:
+  html_document: default
+  pdf_document: default
+  always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, echo = FALSE}
+options(warn=-1)
+library(leaflet)
+
+thrylos <- makeIcon(
+  iconUrl = "https://upload.wikimedia.org/wikipedia/en/thumb/f/f1/Olympiacos_FC_logo.svg/1200px-Olympiacos_FC_logo.svg.png",
+  iconWidth = 31*215/230, iconHeight = 31, iconAnchorX = 31*215/230/2, iconAnchorY = 16)
+
+olympiacosfc <- c("<a href='https://www.olympiacos.org/en/'> Olympiacos FC</a>")
+  
+latlongs <- data.frame(
+  lat = c(37.9466),
+  lng= c(23.6644)
+  )
+
+
+latlongs %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(icon = thrylos, popup = olympiacosfc)
+```

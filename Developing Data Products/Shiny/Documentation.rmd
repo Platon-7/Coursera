@@ -1,0 +1,31 @@
+---
+title: "Documentation"
+author: "Plato Karageorgis"
+date: '2022-06-23'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This is the documentation for the simple Shiny app designed to predict the species of a flower.
+
+## Idea
+
+The idea is very straightforward, we use the iris dataset and attempt to predict the species of a flower. This is done by 
+using the petal and sepal dimensions. We create a model that is trained with the default values of the iris dataset and 
+then the rest is up to the user.
+
+The user is free to choose the dimensions of his flower and the app classifies its species by using the model that we created 
+previously.
+
+## Notes to the user
+
+Just slide to choose the values you want and see your flower's species!
+
+## Error handling
+
+To avoid user errors we use sliders and not numerical input so there is no way that the user can make the app crash.

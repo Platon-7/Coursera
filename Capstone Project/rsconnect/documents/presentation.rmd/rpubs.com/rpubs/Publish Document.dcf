@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/923143/f5ae6ba940ae45f2b05151a9cb0b258f
+bundleId: https://api.rpubs.com/api/v1/document/923143/f5ae6ba940ae45f2b05151a9cb0b258f
+url: http://rpubs.com/Platon/923143
+when: 1657638297.29107
+lastSyncTime: 1657638297.29107
