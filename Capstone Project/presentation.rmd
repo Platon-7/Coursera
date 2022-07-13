@@ -39,7 +39,7 @@ The performance of the algorithm is strongly related with the training set. The 
 
 **It should be noted** that the training dataset is not the mere factor of the performance and it should not be too big as it will lead to overfitting, but in our case 2% is too small.
 
-[https://github.com/Platon-7/Platon-7.github.io/tree/ghpages](https://github.com/Platon-7/Coursera)
+https://github.com/Platon-7/Coursera
 
 ```
 
